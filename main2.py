@@ -82,17 +82,85 @@ def filter_estrazione_tot(input_dataframe):
 def filter_lista_tot(input_dataframe):
     #grouped_df = input_dataframe.groupby(['articolo', 'mese'])['qta'].sum()
     input_dataframe['BU'] = input_dataframe['Customer Group'].fillna(input_dataframe['Bus'])
+    input_dataframe['Fatt'] = input_dataframe ['  Purchase Price ']*input_dataframe['        Qtà conc ']
     input_dataframe[' Val.a'] = pd.to_datetime(input_dataframe[' Val.a'])
     input_dataframe = input_dataframe[input_dataframe['BU'] != 'I80']
     input_dataframe = input_dataframe[input_dataframe['Stt'] == 40]
+    input_dataframe1 = input_dataframe[input_dataframe['TiC'] != 'I02']
+    dataframe_trimestre1 = input_dataframe1[input_dataframe1[' Val.a'].dt.to_period('Q') == '2024Q1']
+    grouped_df1 = dataframe_trimestre1.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum',\
+    '         Qtà acq ':'sum', '     Qta Residua ':'sum', '    Qtà ricevuta':'sum','Fatt':'sum'})
+    dataframe_trimestre2 = input_dataframe1[input_dataframe1[' Val.a'].dt.to_period('Q') == '2024Q2']
+    grouped_df2 = dataframe_trimestre2.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum',\
+    '         Qtà acq ':'sum', '     Qta Residua ':'sum', '    Qtà ricevuta':'sum','Fatt':'sum'})
+    dataframe_trimestre3 = input_dataframe1[input_dataframe1[' Val.a'].dt.to_period('Q') == '2024Q3']
+    grouped_df3 = dataframe_trimestre3.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum',\
+    '         Qtà acq ':'sum', '     Qta Residua ':'sum', '    Qtà ricevuta':'sum','Fatt':'sum'})
+    dataframe_trimestre4 = input_dataframe1[input_dataframe1[' Val.a'].dt.to_period('Q') == '2024Q4']
+    grouped_df4 = dataframe_trimestre4.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum',\
+    '         Qtà acq ':'sum', '     Qta Residua ':'sum', '    Qtà ricevuta':'sum','Fatt':'sum'})
+    merged_df = pd.merge(grouped_df1,grouped_df2, how = 'outer', on = 'Item                ', suffixes=('Q1', 'Q2'))
+    merged_df = pd.merge(merged_df,grouped_df3, how = 'outer', on = 'Item                ', suffixes=('', ' Q3'))
+    merged_df = pd.merge(merged_df, grouped_df4, how='outer', on='Item                ', suffixes=('', 'Q4'))
+    merged_df['APPQ1'] = merged_df['FattQ1'] / merged_df['        Qtà conc Q1']
+    merged_df['APPQ2'] = merged_df['FattQ2'] / merged_df['        Qtà conc Q2']
+    merged_df['APPQ3'] = merged_df['Fatt'] / merged_df['        Qtà conc ']
+    merged_df['APPQ4'] = merged_df['FattQ4'] / merged_df['        Qtà conc Q4']
+    listini_dataframe = input_dataframe[input_dataframe['TiC'] == 'I02']
+    listini_trimestre1 = listini_dataframe[listini_dataframe[' Val.a'].dt.to_period('Q') == '2024Q1']
+    grouped_list1 = listini_trimestre1.groupby(['Item                '], as_index=False).agg({'  Purchase Price ': 'max'})
+    # grouped_df = grouped_df.agg({'qta': 'sum'})
+    print(merged_df)
+    return grouped_list1
+
+def filter_lista_gou(input_dataframe):
+    #grouped_df = input_dataframe.groupby(['articolo', 'mese'])['qta'].sum()
+    input_dataframe['BU'] = input_dataframe['Customer Group'].fillna(input_dataframe['Bus'])
+    input_dataframe['Fatt'] = input_dataframe ['  Purchase Price ']*input_dataframe['        Qtà conc ']
+    input_dataframe[' Val.a'] = pd.to_datetime(input_dataframe[' Val.a'])
+    input_dataframe = input_dataframe[input_dataframe['BU'] == 'I75']
+    input_dataframe = input_dataframe[input_dataframe['Stt'] == 40]
+    input_dataframe = input_dataframe[input_dataframe['TiC'] != 'I02']
     dataframe_trimestre1 = input_dataframe[input_dataframe[' Val.a'].dt.to_period('Q') == '2024Q1']
-    grouped_df1 = dataframe_trimestre1.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum'})
+    grouped_df1 = dataframe_trimestre1.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum',\
+    '         Qtà acq ':'sum', '     Qta Residua ':'sum', '    Qtà ricevuta':'sum','Fatt':'sum'})
     dataframe_trimestre2 = input_dataframe[input_dataframe[' Val.a'].dt.to_period('Q') == '2024Q2']
-    grouped_df2 = dataframe_trimestre2.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum'})
+    grouped_df2 = dataframe_trimestre2.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum',\
+    '         Qtà acq ':'sum', '     Qta Residua ':'sum', '    Qtà ricevuta':'sum','Fatt':'sum'})
     dataframe_trimestre3 = input_dataframe[input_dataframe[' Val.a'].dt.to_period('Q') == '2024Q3']
-    grouped_df3 = dataframe_trimestre3.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum'})
+    grouped_df3 = dataframe_trimestre3.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum',\
+    '         Qtà acq ':'sum', '     Qta Residua ':'sum', '    Qtà ricevuta':'sum','Fatt':'sum'})
     dataframe_trimestre4 = input_dataframe[input_dataframe[' Val.a'].dt.to_period('Q') == '2024Q4']
-    grouped_df4 = dataframe_trimestre4.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum'})
+    grouped_df4 = dataframe_trimestre4.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum',\
+    '         Qtà acq ':'sum', '     Qta Residua ':'sum', '    Qtà ricevuta':'sum','Fatt':'sum'})
+    merged_df = pd.merge(grouped_df1,grouped_df2, how = 'outer', on = 'Item                ', suffixes=('Q1','Q2'))
+    merged_df = pd.merge(merged_df,grouped_df3, how = 'outer', on = 'Item                ', suffixes=('',' Q3'))
+    merged_df = pd.merge(merged_df, grouped_df4, how='outer', on='Item                ', suffixes=('', 'Q4'))
+
+    # grouped_df = grouped_df.agg({'qta': 'sum'})
+    print(merged_df)
+    return merged_df
+
+def filter_lista_ind(input_dataframe):
+    #grouped_df = input_dataframe.groupby(['articolo', 'mese'])['qta'].sum()
+    input_dataframe['BU'] = input_dataframe['Customer Group'].fillna(input_dataframe['Bus'])
+    input_dataframe['Fatt'] = input_dataframe ['  Purchase Price ']*input_dataframe['        Qtà conc ']
+    input_dataframe[' Val.a'] = pd.to_datetime(input_dataframe[' Val.a'])
+    input_dataframe = input_dataframe[input_dataframe['BU'].isin(['I71','I72'])]
+    input_dataframe = input_dataframe[input_dataframe['Stt'] == 40]
+    input_dataframe = input_dataframe[input_dataframe['TiC'] != 'I02']
+    dataframe_trimestre1 = input_dataframe[input_dataframe[' Val.a'].dt.to_period('Q') == '2024Q1']
+    grouped_df1 = dataframe_trimestre1.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum',\
+    '         Qtà acq ':'sum', '     Qta Residua ':'sum', '    Qtà ricevuta':'sum','Fatt':'sum'})
+    dataframe_trimestre2 = input_dataframe[input_dataframe[' Val.a'].dt.to_period('Q') == '2024Q2']
+    grouped_df2 = dataframe_trimestre2.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum',\
+    '         Qtà acq ':'sum', '     Qta Residua ':'sum', '    Qtà ricevuta':'sum','Fatt':'sum'})
+    dataframe_trimestre3 = input_dataframe[input_dataframe[' Val.a'].dt.to_period('Q') == '2024Q3']
+    grouped_df3 = dataframe_trimestre3.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum',\
+    '         Qtà acq ':'sum', '     Qta Residua ':'sum', '    Qtà ricevuta':'sum','Fatt':'sum'})
+    dataframe_trimestre4 = input_dataframe[input_dataframe[' Val.a'].dt.to_period('Q') == '2024Q4']
+    grouped_df4 = dataframe_trimestre4.groupby(['Item                '], as_index=False).agg({'        Qtà conc ': 'sum',\
+    '         Qtà acq ':'sum', '     Qta Residua ':'sum', '    Qtà ricevuta':'sum','Fatt':'sum'})
     merged_df = pd.merge(grouped_df1,grouped_df2, how = 'outer', on = 'Item                ', suffixes=('Q1','Q2'))
     merged_df = pd.merge(merged_df,grouped_df3, how = 'outer', on = 'Item                ', suffixes=('','Q3'))
     merged_df = pd.merge(merged_df, grouped_df4, how='outer', on='Item                ', suffixes=('', 'Q4'))
@@ -100,7 +168,6 @@ def filter_lista_tot(input_dataframe):
     # grouped_df = grouped_df.agg({'qta': 'sum'})
     print(merged_df)
     return merged_df
-
 '''def filter_lista_tot(input_dataframe):
     input_dataframe[' Val.a'] = pd.to_datetime(input_dataframe[' Val.a'])
     dataframe_trimestre1 = input_dataframe[input_dataframe[' Val.a'].dt.to_period('Q')== '2024Q1']
@@ -143,6 +210,8 @@ for file in files:
         elif file.find('Lista') != -1:
             lista_dataframe = file_reader(file, "Sheet0")
             lista_dataframe_tot = filter_lista_tot(lista_dataframe)
+            lista_dataframe_gou = filter_lista_gou(lista_dataframe)
+            lista_dataframe_ind = filter_lista_ind(lista_dataframe)
             print(lista_dataframe)
         elif file.find('BDG') != -1:
             budget_dataframe = file_reader(file, "Foglio1")
@@ -174,7 +243,9 @@ workbook.save(test_file)
 save_dataframe_to_excel(test_file, budget_dataframe_gou, "budget_gou")
 save_dataframe_to_excel(test_file, budget_dataframe_ind, "budget_ind")
 save_dataframe_to_excel(test_file, budget_dataframe_tot, "budget_tot")
-save_dataframe_to_excel(test_file, lista_dataframe_tot, "lista")
+save_dataframe_to_excel(test_file, lista_dataframe_tot, "listatot")
+save_dataframe_to_excel(test_file, lista_dataframe_gou, "listagou")
+save_dataframe_to_excel(test_file, lista_dataframe_ind, "listaind")
 save_dataframe_to_excel(test_file, estrazione_dataframe_tot, "estrazione_tot")
 save_dataframe_to_excel(test_file, estrazione_dataframe_ind, "estrazione_ind")
 save_dataframe_to_excel(test_file, estrazione_dataframe_gou, "estrazione_gou")
