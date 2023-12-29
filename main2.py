@@ -222,6 +222,9 @@ def groupforBU(input_dataframe):
     grouped_df = input_dataframe.groupby(['Contrat'], as_index=False).agg({'BU': 'first'})
     return grouped_df
 
+def filter_visual(input_dataframe):
+    input_dataframe['Dtric+ord']= input_dataframe['Dt ric'].fillna(input_dataframe['DtCons'])
+    return input_dataframe
 
 # main
 date = datetime.now().strftime('%d_%m_%Y_%H_%M_%S')
@@ -238,6 +241,7 @@ if not os.path.exists(INPUT):
     sys.exit(0)
 
 
+
 # list all files in INPUT
 files = os.listdir(INPUT)
 visual_dataframes = []
@@ -246,6 +250,8 @@ for file in files:
     if file.endswith('.xlsx') or file.endswith('.xls'):
         if file.find('Visualizza') != -1:
             visual_dataframes.append(file_reader(file, "Sheet0"))
+            merged_visualizza = merge_visualizza(visual_dataframes)
+            visual_dataframes1 = filter_visual(merged_visualizza)
         elif file.find('Lista') != -1:
             lista_dataframe = file_reader(file, "Sheet0")
             lista_dataframe_tot = filter_lista_tot(lista_dataframe)
@@ -282,7 +288,7 @@ workbook.save(test_file)
 
 # save visualizza merged
 #merged_visualizza = merge_visualizza(visual_dataframes)
-#save_dataframe_to_excel(test_file, visual_dataframes, "visualizza")
+save_dataframe_to_excel(test_file, merged_visualizza, "visualizza")
 save_dataframe_to_excel(test_file, budget_dataframe_gou, "budget_gou")
 save_dataframe_to_excel(test_file, budget_dataframe_ind, "budget_ind")
 save_dataframe_to_excel(test_file, budget_dataframe_tot, "budget_tot")
