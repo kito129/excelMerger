@@ -25,41 +25,46 @@ def save_dataframe_to_excel(path, dataframe, sheet_name):
 def filter_budget_gou(input_dataframe):
     grouped_df = input_dataframe.groupby(['articolo','mese','channel'], as_index=False).agg({'qta':'sum', 'mese':'first','channel':'first'})
     gou_df = grouped_df[grouped_df['channel']=='GOU       ']
-    return gou_df
+    pivot_df =gou_df.pivot_table(index='articolo',columns='mese', values='qta').reset_index()
+    return pivot_df
 
 #function to filter budget files (industrial version)
 def filter_budget_ind(input_dataframe):
     grouped_df = input_dataframe.groupby(['articolo','mese','channel'], as_index=False).agg({'qta':'sum', 'mese':'first','channel':'first'})
     ind_df = grouped_df[grouped_df['channel']=='FOOD      ']
-    return ind_df
+    pivot_df =ind_df.pivot_table(index='articolo',columns='mese', values='qta').reset_index()
+    return pivot_df
 
 #function to filter budget files (total version)
 def filter_budget_tot(input_dataframe):
     grouped_df = input_dataframe.groupby(['articolo','mese'], as_index=False).agg({'qta':'sum', 'mese':'first'})
-    return grouped_df
+    pivot_df =grouped_df.pivot_table(index='articolo',columns='mese', values='qta').reset_index()
+    return pivot_df
 
 #function to filter "estrazione" files (gourmet version)
 def filter_estrazione_gou(input_dataframe):
     grouped_df = input_dataframe.groupby(['articolo','mese','macro_channel'], as_index=False).agg({'qta':'sum', 'mese':'first','macro_channel':'first'})
     gou_df = grouped_df[grouped_df['macro_channel']=='GOURMET ']
-    return gou_df
+    pivot_df =gou_df.pivot_table(index='articolo',columns='mese', values='qta').reset_index()
+    return pivot_df
 
 #function to filter "estrazione" files (industrial version)
 def filter_estrazione_ind(input_dataframe):
     filtered_df = input_dataframe[input_dataframe['macro_channel'].isin(['FOOD MANUFACTURERS       ', 'INTERCOMPANY'])]
     grouped_df = filtered_df.groupby(['articolo','mese'], as_index=False).agg({'qta':'sum', 'mese':'first'})
-    return grouped_df
+    pivot_df =grouped_df.pivot_table(index='articolo',columns='mese', values='qta').reset_index()
+    return pivot_df
 
 #function to filter "estrazione" files (total version)
 def filter_estrazione_tot(input_dataframe):
     grouped_df = input_dataframe.groupby(['articolo','mese'], as_index=False).agg({'qta':'sum', 'mese':'first'})
-    return grouped_df
+    pivot_df = grouped_df.pivot_table(index='articolo', columns='mese', values='qta').reset_index()
+    return pivot_df
 
 def filter_lista_tot(input_dataframe):
     input_dataframe['BU'] = input_dataframe['Customer Group'].fillna(input_dataframe['Bus'])
     input_dataframe['Fatt'] = input_dataframe ['  Purchase Price ']*input_dataframe['        Qtà conc ']
     input_dataframe[' Val.a'] = pd.to_datetime(input_dataframe[' Val.a'])
-    input_dataframe = input_dataframe[input_dataframe['BU'] != 'I80']
     input_dataframe = input_dataframe[input_dataframe['Stt'] == 40]
     input_dataframe1 = input_dataframe[input_dataframe['TiC'] != 'I02']
     dataframe_trimestre1 = input_dataframe1[input_dataframe1[' Val.a'].dt.to_period('Q') == '2024Q1']
@@ -223,8 +228,61 @@ def groupforBU(input_dataframe):
     return grouped_df
 
 def filter_visual(input_dataframe):
-    input_dataframe['Dtric+ord']= input_dataframe['Dt ric'].fillna(input_dataframe['DtCons'])
-    return input_dataframe
+    input_dataframe['Ns N rif']= pd.to_numeric(input_dataframe['Ns N rif'], errors='coerce')
+    input_dataframe= pd.merge(input_dataframe,grouped_forBU, how = 'outer', left_on='Ns N rif', right_on='Contrat')
+    input_dataframe['Dtric+cons']= input_dataframe['Dt ric'].fillna(input_dataframe['DtCons'])
+    input_dataframe['Qtàric+ord']=input_dataframe['Qtà ricev '].fillna(input_dataframe['QtOrdinata'])
+    input_dataframe['Fatt'] = input_dataframe['Prz acquis'] * input_dataframe['Qtàric+ord']
+    input_dataframe['Dtric+cons'] = pd.to_datetime(input_dataframe['Dtric+cons'])
+    input_dataframe1 = input_dataframe[input_dataframe['Sta'] != 99]
+    dataframe_gen = input_dataframe1[input_dataframe1['Dtric+cons'].dt.month == 1]
+    grouped_df1 = dataframe_gen.groupby(['C  parte  '], as_index=False).agg({'Qtàric+ord': 'sum', 'Qtà confer':'sum', 'Qtà ricev ':'sum','Fatt':'sum'})
+    grouped_df1['APP'] = grouped_df1['Fatt'] / grouped_df1['Qtàric+ord']
+    dataframe_feb = input_dataframe1[input_dataframe1['Dtric+cons'].dt.month == 2]
+    grouped_df2 = dataframe_feb.groupby(['C  parte  '], as_index=False).agg({'Qtàric+ord': 'sum', 'Qtà confer':'sum', 'Qtà ricev ':'sum','Fatt':'sum'})
+    grouped_df2['APP'] = grouped_df2['Fatt'] / grouped_df2['Qtàric+ord']
+    dataframe_mar = input_dataframe1[input_dataframe1['Dtric+cons'].dt.month == 3]
+    grouped_df3 = dataframe_mar.groupby(['C  parte  '], as_index=False).agg({'Qtàric+ord': 'sum', 'Qtà confer':'sum', 'Qtà ricev ':'sum','Fatt':'sum'})
+    grouped_df3['APP'] = grouped_df3['Fatt'] / grouped_df3['Qtàric+ord']
+    dataframe_apr = input_dataframe1[input_dataframe1['Dtric+cons'].dt.month == 4]
+    grouped_df4 = dataframe_apr.groupby(['C  parte  '], as_index=False).agg({'Qtàric+ord': 'sum', 'Qtà confer':'sum', 'Qtà ricev ':'sum','Fatt':'sum'})
+    grouped_df4['APP'] = grouped_df4['Fatt'] / grouped_df4['Qtàric+ord']
+    dataframe_mag = input_dataframe1[input_dataframe1['Dtric+cons'].dt.month == 5]
+    grouped_df5 = dataframe_mag.groupby(['C  parte  '], as_index=False).agg({'Qtàric+ord': 'sum', 'Qtà confer':'sum', 'Qtà ricev ':'sum','Fatt':'sum'})
+    grouped_df5['APP'] = grouped_df5['Fatt'] / grouped_df5['Qtàric+ord']
+    dataframe_giu = input_dataframe1[input_dataframe1['Dtric+cons'].dt.month == 6]
+    grouped_df6 = dataframe_giu.groupby(['C  parte  '], as_index=False).agg({'Qtàric+ord': 'sum', 'Qtà confer':'sum', 'Qtà ricev ':'sum','Fatt':'sum'})
+    grouped_df6['APP'] = grouped_df6['Fatt'] / grouped_df6['Qtàric+ord']
+    dataframe_lug = input_dataframe1[input_dataframe1['Dtric+cons'].dt.month == 7]
+    grouped_df7 = dataframe_lug.groupby(['C  parte  '], as_index=False).agg({'Qtàric+ord': 'sum', 'Qtà confer':'sum', 'Qtà ricev ':'sum','Fatt':'sum'})
+    grouped_df7['APP'] = grouped_df7['Fatt'] / grouped_df7['Qtàric+ord']
+    dataframe_ago = input_dataframe1[input_dataframe1['Dtric+cons'].dt.month == 8]
+    grouped_df8 = dataframe_ago.groupby(['C  parte  '], as_index=False).agg({'Qtàric+ord': 'sum', 'Qtà confer':'sum', 'Qtà ricev ':'sum','Fatt':'sum'})
+    grouped_df8['APP'] = grouped_df8['Fatt'] / grouped_df8['Qtàric+ord']
+    dataframe_set = input_dataframe1[input_dataframe1['Dtric+cons'].dt.month == 9]
+    grouped_df9 = dataframe_set.groupby(['C  parte  '], as_index=False).agg({'Qtàric+ord': 'sum', 'Qtà confer':'sum', 'Qtà ricev ':'sum','Fatt':'sum'})
+    grouped_df9['APP'] = grouped_df9['Fatt'] / grouped_df9['Qtàric+ord']
+    dataframe_ott = input_dataframe1[input_dataframe1['Dtric+cons'].dt.month == 10]
+    grouped_df10 = dataframe_ott.groupby(['C  parte  '], as_index=False).agg({'Qtàric+ord': 'sum', 'Qtà confer':'sum', 'Qtà ricev ':'sum','Fatt':'sum'})
+    grouped_df10['APP'] = grouped_df10['Fatt'] / grouped_df10['Qtàric+ord']
+    dataframe_nov = input_dataframe1[input_dataframe1['Dtric+cons'].dt.month == 11]
+    grouped_df11 = dataframe_nov.groupby(['C  parte  '], as_index=False).agg({'Qtàric+ord': 'sum', 'Qtà confer':'sum', 'Qtà ricev ':'sum','Fatt':'sum'})
+    grouped_df11['APP'] = grouped_df11['Fatt'] / grouped_df11['Qtàric+ord']
+    dataframe_dic = input_dataframe1[input_dataframe1['Dtric+cons'].dt.month == 12]
+    grouped_df12 = dataframe_dic.groupby(['C  parte  '], as_index=False).agg({'Qtàric+ord': 'sum', 'Qtà confer':'sum', 'Qtà ricev ':'sum','Fatt':'sum'})
+    grouped_df12['APP'] = grouped_df12['Fatt'] / grouped_df12['Qtàric+ord']
+    merged_df = pd.merge(grouped_df1, grouped_df2, how='outer', on='C  parte  ', suffixes=('Gen', 'Feb'))
+    merged_df1 = pd.merge(merged_df, grouped_df3, how='outer', on='C  parte  ', suffixes=('', 'Mar'))
+    merged_df2 = pd.merge(merged_df1, grouped_df4, how='outer', on='C  parte  ', suffixes=('', 'Apr'))
+    merged_df3 = pd.merge(merged_df2, grouped_df5, how='outer', on='C  parte  ', suffixes=('', 'Mag'))
+    merged_df4 = pd.merge(merged_df3, grouped_df6, how='outer', on='C  parte  ', suffixes=('', 'Giu'))
+    merged_df5 = pd.merge(merged_df4, grouped_df7, how='outer', on='C  parte  ', suffixes=('', 'Lug'))
+    merged_df6 = pd.merge(merged_df5, grouped_df8, how='outer', on='C  parte  ', suffixes=('', 'Ago'))
+    merged_df7 = pd.merge(merged_df6, grouped_df9, how='outer', on='C  parte  ', suffixes=('', 'Set'))
+    merged_df8 = pd.merge(merged_df7, grouped_df10, how='outer', on='C  parte  ', suffixes=('', 'Ott'))
+    merged_df9 = pd.merge(merged_df8, grouped_df11, how='outer', on='C  parte  ', suffixes=('', 'Nov'))
+    merged_df10 = pd.merge(merged_df9, grouped_df12, how='outer', on='C  parte  ', suffixes=('', 'Dic'))
+    return merged_df10
 
 # main
 date = datetime.now().strftime('%d_%m_%Y_%H_%M_%S')
@@ -275,6 +333,62 @@ for file in files:
             codici_dataframe_industrial = file_reader(file, "Industrial")
             codici_dataframe_gourmet = file_reader(file, "Gourmet")
 
+#merge Totale
+merged_df_tot = pd.merge(codici_dataframe_total,lista_dataframe_tot,how = 'outer', left_on='Codice parte', right_on='Item                ' )
+merged_df_tot_bdg = pd.merge(merged_df_tot,budget_dataframe_tot, how = 'outer', left_on='Codice parte', right_on='articolo', suffixes=('', ' BDG'))
+merged_df_tot_bdg_act = pd.merge(merged_df_tot_bdg,estrazione_dataframe_tot, how = 'outer', left_on='Codice parte', right_on='articolo' , suffixes=('', ' ACT'))
+merged_df_tot_bdg_act['BDGQ1'] = merged_df_tot_bdg_act['1']+merged_df_tot_bdg_act['2']+merged_df_tot_bdg_act['3']
+merged_df_tot_bdg_act['BDGQ2'] = merged_df_tot_bdg_act['4']+merged_df_tot_bdg_act['5']+merged_df_tot_bdg_act['6']
+merged_df_tot_bdg_act['BDGQ3'] = merged_df_tot_bdg_act['7']+merged_df_tot_bdg_act['8']+merged_df_tot_bdg_act['9']
+merged_df_tot_bdg_act['BDGQ4'] = merged_df_tot_bdg_act[10]+merged_df_tot_bdg_act[11]+merged_df_tot_bdg_act[12]
+merged_df_tot_bdg_act['ACTQ1'] = merged_df_tot_bdg_act['1 ACT']+merged_df_tot_bdg_act['2 ACT']+merged_df_tot_bdg_act['3 ACT']
+merged_df_tot_bdg_act['ACTQ2'] = merged_df_tot_bdg_act['4 ACT']+merged_df_tot_bdg_act['5 ACT']+merged_df_tot_bdg_act['6 ACT']
+merged_df_tot_bdg_act['ACTQ3'] = merged_df_tot_bdg_act['7 ACT']+merged_df_tot_bdg_act['8 ACT']+merged_df_tot_bdg_act['9 ACT']
+new_order = ['Codice parte', 'Macro','Micro','Nome','Codice padre','Descrizione padre','Baseline Gourmet','BDGQ1','ACTQ1','        Qtà conc Q1','     Qta Residua Q1',
+             '    Qtà ricevutaQ1','FattQ1','APPQ1','BDGQ2','ACTQ2','        Qtà conc Q2','         Qtà acq Q2','     Qta Residua Q2',
+             '    Qtà ricevutaQ2','FattQ2','APPQ2','BDGQ3','ACTQ3','        Qtà conc ','         Qtà acq ','     Qta Residua ',
+             '    Qtà ricevuta','Fatt','APPQ3','BDGQ4','        Qtà conc Q4','         Qtà acq Q4','     Qta Residua Q4','    Qtà ricevutaQ4','FattQ4','APPQ4']
+merged_df_tot_bdg_act=merged_df_tot_bdg_act[new_order]
+
+
+#merge ind
+merged_df_ind = pd.merge(codici_dataframe_industrial,lista_dataframe_ind,how = 'outer', left_on='Codice parte', right_on='Item                ' )
+merged_df_ind_bdg = pd.merge(merged_df_ind,budget_dataframe_ind, how = 'outer', left_on='Codice parte', right_on='articolo', suffixes=('', ' BDG'))
+merged_df_ind_bdg_act = pd.merge(merged_df_ind_bdg,estrazione_dataframe_ind, how = 'outer', left_on='Codice parte', right_on='articolo' , suffixes=('', ' ACT'))
+merged_df_ind_bdg_act['BDGQ1'] = merged_df_ind_bdg_act['1']+merged_df_ind_bdg_act['2']+merged_df_ind_bdg_act['3']
+merged_df_ind_bdg_act['BDGQ2'] = merged_df_ind_bdg_act['4']+merged_df_ind_bdg_act['5']+merged_df_ind_bdg_act['6']
+merged_df_ind_bdg_act['BDGQ3'] = merged_df_ind_bdg_act['7']+merged_df_ind_bdg_act['8']+merged_df_ind_bdg_act['9']
+merged_df_ind_bdg_act['BDGQ4'] = merged_df_ind_bdg_act[10]+merged_df_ind_bdg_act[11]+merged_df_ind_bdg_act[12]
+merged_df_ind_bdg_act['ACTQ1'] = merged_df_ind_bdg_act['1 ACT']+merged_df_ind_bdg_act['2 ACT']+merged_df_ind_bdg_act['3 ACT']
+merged_df_ind_bdg_act['ACTQ2'] = merged_df_ind_bdg_act['4 ACT']+merged_df_ind_bdg_act['5 ACT']+merged_df_ind_bdg_act['6 ACT']
+merged_df_ind_bdg_act['ACTQ3'] = merged_df_ind_bdg_act['7 ACT']+merged_df_ind_bdg_act['8 ACT']+merged_df_ind_bdg_act['9 ACT']
+new_order = ['Codice parte', 'Macro','Micro','Nome','Codice padre','Descrizione padre','BDGQ1','ACTQ1','        Qtà conc Q1','     Qta Residua Q1',
+             '    Qtà ricevutaQ1','FattQ1','APPQ1','BDGQ2','ACTQ2','        Qtà conc Q2','         Qtà acq Q2','     Qta Residua Q2',
+             '    Qtà ricevutaQ2','FattQ2','APPQ2','BDGQ3','ACTQ3','        Qtà conc ','         Qtà acq ','     Qta Residua ',
+             '    Qtà ricevuta','Fatt','APPQ3','BDGQ4','        Qtà conc Q4','         Qtà acq Q4','     Qta Residua Q4','    Qtà ricevutaQ4','FattQ4','APPQ4']
+merged_df_ind_bdg_act=merged_df_ind_bdg_act[new_order]
+
+
+#merge gou
+merged_df_gou = pd.merge(codici_dataframe_gourmet,lista_dataframe_gou,how = 'outer', left_on='Codice parte', right_on='Item                ' )
+merged_df_gou_bdg = pd.merge(merged_df_gou,budget_dataframe_gou, how = 'outer', left_on='Codice parte', right_on='articolo', suffixes=('', ' BDG'))
+merged_df_gou_bdg_act = pd.merge(merged_df_gou_bdg,estrazione_dataframe_gou, how = 'outer', left_on='Codice parte', right_on='articolo' , suffixes=('', ' ACT'))
+merged_df_gou_bdg_act['BDGQ1'] = merged_df_gou_bdg_act['1']+merged_df_gou_bdg_act['2']+merged_df_gou_bdg_act['3']
+merged_df_gou_bdg_act['BDGQ2'] = merged_df_gou_bdg_act['4']+merged_df_gou_bdg_act['5']+merged_df_gou_bdg_act['6']
+merged_df_gou_bdg_act['BDGQ3'] = merged_df_gou_bdg_act['7']+merged_df_gou_bdg_act['8']+merged_df_gou_bdg_act['9']
+merged_df_gou_bdg_act['BDGQ4'] = merged_df_gou_bdg_act[10]+merged_df_gou_bdg_act[11]+merged_df_gou_bdg_act[12]
+merged_df_gou_bdg_act['ACTQ1'] = merged_df_gou_bdg_act['1 ACT']+merged_df_gou_bdg_act['2 ACT']+merged_df_gou_bdg_act['3 ACT']
+merged_df_gou_bdg_act['ACTQ2'] = merged_df_gou_bdg_act['4 ACT']+merged_df_gou_bdg_act['5 ACT']+merged_df_gou_bdg_act['6 ACT']
+merged_df_gou_bdg_act['ACTQ3'] = merged_df_gou_bdg_act['7 ACT']+merged_df_gou_bdg_act['8 ACT']+merged_df_gou_bdg_act['9 ACT']
+new_order = ['Codice parte', 'Macro','Micro','Nome','Codice padre','Descrizione padre','Baseline Gourmet','BDGQ1','ACTQ1','        Qtà conc Q1','     Qta Residua Q1',
+             '    Qtà ricevutaQ1','FattQ1','APPQ1','BDGQ2','ACTQ2','        Qtà conc Q2','         Qtà acq Q2','     Qta Residua Q2',
+             '    Qtà ricevutaQ2','FattQ2','APPQ2','BDGQ3','ACTQ3','        Qtà conc ','         Qtà acq ','     Qta Residua ',
+             '    Qtà ricevuta','Fatt','APPQ3','BDGQ4','        Qtà conc Q4','         Qtà acq Q4','     Qta Residua Q4','    Qtà ricevutaQ4','FattQ4','APPQ4']
+merged_df_gou_bdg_act=merged_df_gou_bdg_act[new_order]
+
+#merge visua
+merged_df_visua_tot= pd.merge(codici_dataframe_total,visual_dataframes1, how = 'outer', left_on='Codice parte', right_on='C  parte  ', suffixes=('', ' PO'))
+
 
 # test pourpose
 test_file = os.path.join(os.path.abspath(OUTPUT), f'merged_{date}.xlsx')
@@ -287,20 +401,21 @@ workbook.save(test_file)
 
 
 # save visualizza merged
-#merged_visualizza = merge_visualizza(visual_dataframes)
-save_dataframe_to_excel(test_file, merged_visualizza, "visualizza")
-save_dataframe_to_excel(test_file, budget_dataframe_gou, "budget_gou")
-save_dataframe_to_excel(test_file, budget_dataframe_ind, "budget_ind")
-save_dataframe_to_excel(test_file, budget_dataframe_tot, "budget_tot")
-save_dataframe_to_excel(test_file, lista_dataframe_tot, "listatot")
-save_dataframe_to_excel(test_file, lista_dataframe_gou, "listagou")
-save_dataframe_to_excel(test_file, lista_dataframe_ind, "listaind")
-save_dataframe_to_excel(test_file, grouped_forBU, "BUcontracts")
+save_dataframe_to_excel(test_file, visual_dataframes1, "visualizza")
+save_dataframe_to_excel(test_file, budget_dataframe_gou, "budget_mensile_gou")
+save_dataframe_to_excel(test_file, budget_dataframe_ind, "budget_mensile_ind")
+save_dataframe_to_excel(test_file, budget_dataframe_tot, "budget_mensile_tot")
+#save_dataframe_to_excel(test_file, lista_dataframe_tot, "listatot")
+#save_dataframe_to_excel(test_file, lista_dataframe_gou, "listagou")
+#save_dataframe_to_excel(test_file, lista_dataframe_ind, "listaind")
+#save_dataframe_to_excel(test_file, grouped_forBU, "BUcontracts")
 #save_dataframe_to_excel(test_file, merge_lista,"merge")
 save_dataframe_to_excel(test_file, estrazione_dataframe_tot, "estrazione_tot")
 save_dataframe_to_excel(test_file, estrazione_dataframe_ind, "estrazione_ind")
 save_dataframe_to_excel(test_file, estrazione_dataframe_gou, "estrazione_gou")
-save_dataframe_to_excel(test_file, codici_dataframe_total, "codici total")
+save_dataframe_to_excel(test_file, merged_df_tot_bdg_act, "codici total")
+save_dataframe_to_excel(test_file, merged_df_ind_bdg_act, "codici ind")
+save_dataframe_to_excel(test_file, merged_df_gou_bdg_act, "codici gou")
 #save_dataframe_to_excel(test_file, grouped_forBU, "merged_visuaBU")
 
 
